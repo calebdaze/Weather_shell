@@ -9,3 +9,10 @@ A: I use jq and open weather!
 
 Q:Are you going to do anything else with this?
 A: Maybe! I have some ideas and want to start getting into the cybersecurity field so these projects will help teach me and show I know the code!
+
+Q: Do I have to do anything?
+A: Yes! At the current moment you must enter your lat and long while also putting in your own openweather API keys! The are free!
+
+TODO:
+Add a way where user can put their own city in program while having the program remember it.
+Make it where user can change F and C
