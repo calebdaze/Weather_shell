@@ -11,5 +11,4 @@ Q: Do I have to do anything?
 A: Yes! At the current moment you must enter your lat and long while also putting in your own openweather API keys! The are free!
 
 TODO:
-DONE! Add a way where user can put their own city in program while having the program remember it.
 Make it where user can change F and C
