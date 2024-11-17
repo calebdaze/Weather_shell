@@ -1,6 +1,6 @@
 #!/bin/bash
-w_api_key="5761cf2fc9a109756e14b564ab19ade2"
-g_api_key="ipb_live_G1JD1YzFNc8VY8JWm4CWeth9MOM05YW8I9tO1jIi"
+w_api_key="x"
+g_api_key="x"
 #This is so it can remember users input for temperature units
 temp_unit_file=".temp_unit"
 
