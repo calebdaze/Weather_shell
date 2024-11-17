@@ -1,6 +1,9 @@
 #!/bin/bash
-w_api_key="place api here"
-g_api_key="place api here"
+w_api_key="5761cf2fc9a109756e14b564ab19ade2"
+g_api_key="ipb_live_G1JD1YzFNc8VY8JWm4CWeth9MOM05YW8I9tO1jIi"
+#This is so it can remember users input for temperature units
+temp_unit_file=".temp_unit"
+
 #Gets the IP of the user
 get_ip() {
     current_ip=$(curl -s "http://checkip.dyndns.org/" | grep -o -E "[0-9\.]+")
@@ -12,8 +15,21 @@ get_geolocation_data() {
     lat=$(echo ${geolocation_data} | jq -r '.data.location.latitude')
     lon=$(echo ${geolocation_data} | jq -r '.data.location.longitude')
 }
+#Calls the ip and geolocation once
 get_ip
 get_geolocation_data
+#Get the temp from the API
+get_temp_unit() {
+    if [[ -f "$temp_unit_file" ]]; then
+        unit=$(cat "$temp_unit_file")
+    else
+        unit="imperial"  # Default to Fahrenheit (imperial units)
+    fi
+}
+#Saves the users input
+set_temp_unit() {
+    echo "$1" > "$temp_unit_file"
+}
 #Function to get each day of a week
 get_day_of_week() {
     case $1 in
@@ -28,7 +44,7 @@ get_day_of_week() {
 }
 #Get the new weather data
 future_data() {
-    FOREAPI=$(curl -s "api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${w_api_key}&units=imperial")
+    FOREAPI=$(curl -s "api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${w_api_key}&units=${unit}")
     #Figure out the dates from the current date
     day1_date=$(date --date="1 day" +%Y-%m-%d)
     day2_date=$(date --date="2 days" +%Y-%m-%d)
@@ -45,16 +61,16 @@ future_data() {
     day2_name=$(get_day_of_week $(date --date="$day2_date" +%w))
     day3_name=$(get_day_of_week $(date --date="$day3_date" +%w))
     #Print the weather forecast for the next 3 days
-    echo "Now the tempature for the next three days:"
-    echo "On $day1_name, $day1_date the temp will be $day1_temp°F with it being $day1_desc outside!"
-    echo "On $day2_name, $day2_date the temp will be $day2_temp°F with it being $day2_desc outside!"
-    echo "On $day3_name, $day3_date the temp will be $day3_temp°F with it being $day3_desc outside!"
+    echo "Now the temperature for the next three days:"
+    echo "On $day1_name, $day1_date the Temperature will be $day1_temp° with it being $day1_desc outside!"
+    echo "On $day2_name, $day2_date the Temperature will be $day2_temp° with it being $day2_desc outside!"
+    echo "On $day3_name, $day3_date the Temperature will be $day3_temp° with it being $day3_desc outside!"
 }
 #Function for getting the present weather variables
 present_data()
 {
     #Getting all the variables
-    WAPI=$(curl -s "https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${w_api_key}&units=imperial")
+    WAPI=$(curl -s "https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${w_api_key}&units=${unit}")
     description=$(echo $WAPI | jq -r '.weather[0].description')
     present_temp=$(echo $WAPI | jq -r '.main.temp')
     present_wind=$(echo $WAPI | jq -r '.wind.speed')
@@ -64,11 +80,11 @@ present_data()
     echo "Todays weather has $description with a wind speed of $present_wind mph".
     #Different messages depending on the temp. Makes it have "personality"
     if [[ "$present_temp" -lt 60 ]]; then
-        echo "Make sure to bring a jacket outside! The temp is $present_temp°F!"
+        echo "Make sure to bring a jacket outside! The Temperature is $present_temp°!"
     elif [[ "$present_temp" -ge 60  && "$present_temp" -lt 90 ]]; then
-        echo "Its going to be a good day outside! Temp is $present_temp°F!"
+        echo "Its going to be a good day outside! Temperature is $present_temp°!"
     else
-        echo "Also have I mentioned that it's HOT?! Temp is $present_temp°F!"
+        echo "Also have I mentioned that it's HOT?! Temperature is $present_temp°!"
     fi
     #Different messages depending on the rain. OpenWeather only does it for the next hour
     if [[ "$present_rain" -gt 0 ]]; then
@@ -78,17 +94,32 @@ present_data()
     fi
 }
 #Calling all the FUNctions (haha)
-get_ip
-get_geolocation_data
+get_temp_unit
 present_data
 future_data
 #Doing this so if I want to add more options I just have to change a if statement
-echo "Press 'q' to quit the program"
+echo "Press 'q' to quit the program or press 'c' to change your prefered unit"
 while true; do
     read -n 1 -s key
     if [[ "$key" == "q" ]]; then
         break
+    elif [[ "$key" == "c" ]]; then
+        if [[ "$unit" == "imperial" ]]; then
+            clear
+            unit="metric"
+            set_temp_unit "metric"
+            echo "Temperature unit changed to Celsius!"
+            present_data
+            future_data
+        else
+            clear
+            unit="imperial"
+            set_temp_unit "imperial"
+            echo "Temperature unit changed to Fahrenheit!"
+            present_data
+            future_data
+        fi
     else
-        echo "Bro did not type q"
+        echo "Bro did not type q or c"
     fi
 done
